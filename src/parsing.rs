@@ -11,7 +11,7 @@ pub struct Parsing {
 
 impl Parsing {
 
-    // Primary function: convert a vector of references into a vector of inter code strings
+    // Primary function: convert a string reference into a vector of integer code strings
     pub fn convert_refs(test_ref: &str) -> Vec<String> {
         let vec_ref: String = Self::clean_ref(test_ref);
 
@@ -61,6 +61,17 @@ impl Parsing {
                 }
             }
         }
+
+        for f in &final_refs {
+            if f.contains('-') {
+                let f_split: Vec<&str> = f.split('-').collect();
+                let code1 = Self::extract_digits(f_split[0]);
+                let code2 = Self::extract_digits(f_split[1]);
+                if code1 > code2 {
+                    eprintln!("Warning! Are your references reversed?")
+                }
+            }
+        }
     
         final_refs
     }
@@ -85,14 +96,6 @@ impl Parsing {
             .iter()
             .flat_map(|r| vec![Self::iterative_parse(vec![r.to_string()])])
             .collect();
-
-        // Verify that the number of strings in ref_books equals the number of Vec<String> in parsed_chapter_verses
-        if ref_books.len() != parsed_chapter_verses.len() {
-            panic!("Unequal number of ref_books ({}) and parsed_chapter_verses ({})",
-                ref_books.len(),
-                parsed_chapter_verses.len()
-            );
-        }
 
         // iterate over ref_books and parsed_chapter_verses simultaneously
         let book_chapter_verses: Vec<String> = ref_books.into_iter().rev()
@@ -261,7 +264,11 @@ impl Parsing {
             // multiple chapter and verse; e.g. "GEN1:2-3:40"
             let parts: Vec<&str> = remainder.split('-').collect();
             let first_chapter_verse = parts[0];
-            let second_chapter_verse = parts[1];
+            let second_chapter_verse = match parts.get(1) {
+                Some(verse) => verse,
+                None => return Err("Warning: Invalid reference"),
+            };
+
             Ok(format!("{}{:03}{:03}-{}{:03}{:03}",
                 book_id,
                 first_chapter_verse.split(':').collect::<Vec<&str>>()[0].parse::<u32>().unwrap_or(0),
@@ -310,15 +317,6 @@ impl Parsing {
                     }
                     break;
                 }
-            }
-        }
-
-        if !id_code0.is_empty() && !id_code1.is_empty() {
-            let num_id_code0 = Self::extract_digits(&id_code0);
-            let num_id_code1 = Self::extract_digits(&id_code1);
-
-            if num_id_code0 >= num_id_code1 {
-                eprintln!("Error: id_code0 should be less than id_code1");
             }
         }
 

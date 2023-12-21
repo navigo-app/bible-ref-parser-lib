@@ -26,7 +26,7 @@ impl TitleMap {
         map.insert("EZRA", "EZR");
         map.insert("NEHEMIAH", "NEH");
         map.insert("ESTHER", "EST");
-        map.insert("PSALM", "PSA");
+        map.insert("PSALMS", "PSA");
         map.insert("PROVERBS", "PRO");
         map.insert("ECCLESIASTES", "ECC");
         map.insert("SONGOFSOLOMON", "SNG");
@@ -92,6 +92,7 @@ impl TitleMap {
         map.insert("EZR", "EZR");
         map.insert("NEH", "NEH");
         map.insert("EST", "EST");
+        map.insert("PSALM", "PSA");
         map.insert("PRO", "PRO");
         map.insert("ECCLES", "ECC");
         map.insert("SONG", "SNG");

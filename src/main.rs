@@ -19,18 +19,25 @@ fn main() {
         "Gen. 1",
         "Exo. 1;2,3",
         "Dt 1:1,2,4",
-        "Ge 1:1-2:20",
+        "I Sam 1:1-2:20",
+        "I Sa 1:1-2:20",
         "Gen 1:1-2:20,23",
-        "Gen 1; Psalm 1",
+        "Song of Solomon 1; Psalms 1, 2",
         "I Cor. 1 & Ps. 1",
-        "Judges 1 and Psalm 1",
+        "Judges 1 and Prov. 2",
         "Gen 7:21,19:17,20-27",
         "Mark 1,2,3:27",
         "Gen 1:1-20; 24",
         "2 Jn 1; 24:2; 39",
         "Psalm 6:22, 1 John 3:15, Gen 1:1",
-        "GENESIS 7:21,19:17,20-27;1 John 1,2,3:27,Psalm 1,2:7",
+        "GENESIS 7:21,19:17,20-27;1 JOHN 1,2,3:27,PSALM 1,2:7",
         "Acts 2:3,16-17,33, 10:44-45, 11:15-16; Matt 3:16-17; John 1:32; Luke 3:22; Is 44:3",
+        "Ezra 1:3-2", // throws a warning
+        "Ruth 3-2", // throws a warning
+        "Numbers 1 - Leviticus 30", // throws a warning
+        "John 3:16:17", // throws an error warning and returns an empty vector
+        "Garbage 3:16", // returns empty vector
+        "1,728", // returns empty vector
     ];
 
     // Converts the compound string of references into a string vector of integer codes

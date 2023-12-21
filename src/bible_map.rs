@@ -88,6 +88,7 @@ impl BibleMap {
         map.insert("PS", "PSA");
         map.insert("PSA", "PSA");
         map.insert("PSALM", "PSA");
+        map.insert("PSALMS", "PSA");
         map.insert("PRO", "PRO");
         map.insert("PR", "PRO");
         map.insert("PROV", "PRO");
@@ -318,6 +319,103 @@ impl BibleMap {
         }
 
         None
+    }
+
+    pub fn get_book_code_by_id(code: u32) -> Option<String> {
+        let map = [
+            (1, "GEN"),
+            (2, "EXO"),
+            (3, "LEV"),
+            (4, "NUM"),
+            (5, "DEU"),
+            (6, "JOS"),
+            (7, "JDG"),
+            (8, "RUT"),
+            (9, "1SA"),
+            (10, "2SA"),
+            (11, "1KI"),
+            (12, "2KI"),
+            (13, "1CH"),
+            (14, "2CH"),
+            (15, "EZR"),
+            (16, "NEH"),
+            (17, "EST"),
+            (18, "JOB"),
+            (19, "PSA"),
+            (20, "PRO"),
+            (21, "ECC"),
+            (22, "SNG"),
+            (23, "ISA"),
+            (24, "JER"),
+            (25, "LAM"),
+            (26, "EZK"),
+            (27, "DAN"),
+            (28, "HOS"),
+            (29, "JOL"),
+            (30, "AMO"),
+            (31, "OBA"),
+            (32, "JON"),
+            (33, "MIC"),
+            (34, "NAM"),
+            (35, "HAB"),
+            (36, "ZEP"),
+            (37, "HAG"),
+            (38, "ZEC"),
+            (39, "MAL"),
+            (40, "MAT"),
+            (41, "MRK"),
+            (42, "LUK"),
+            (43, "JHN"),
+            (44, "ACT"),
+            (45, "ROM"),
+            (46, "1CO"),
+            (47, "2CO"),
+            (48, "GAL"),
+            (49, "EPH"),
+            (50, "PHP"),
+            (51, "COL"),
+            (52, "1TH"),
+            (53, "2TH"),
+            (54, "1TI"),
+            (55, "2TI"),
+            (56, "TIT"),
+            (57, "PHM"),
+            (58, "HEB"),
+            (59, "JAS"),
+            (60, "1PE"),
+            (61, "2PE"),
+            (62, "1JN"),
+            (63, "2JN"),
+            (64, "3JN"),
+            (65, "JUD"),
+            (66, "REV"),
+        ];
+
+        for (key, value) in map.iter() {
+            if key == &code {
+                return Some(value.to_string());
+            }
+        }
+
+        None
+    }    
+
+    pub fn get_ref_by_code(code: &str) -> Option<String> {
+        let code_length = code.len();
+        if code_length < 7 {
+            return None;
+        }
+
+        let (book_chap_code, verse_code) = code.split_at(code_length - 3);
+        let verse = verse_code.parse::<u32>().unwrap_or(0);
+
+        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() -3);
+
+        let chapter = chapter_code.parse::<u32>().unwrap_or(0);
+        let book_id = book_code.parse::<u32>().unwrap_or(0);
+        let book_code = Self::get_book_code_by_id(book_id);
+
+        Some(format!("{}{}:{}", book_code.unwrap_or_default(), chapter, verse))
     }
 
 }
