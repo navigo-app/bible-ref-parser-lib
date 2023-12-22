@@ -12,21 +12,24 @@ pub struct Parsing {
 impl Parsing {
 
     // Primary function: convert a string reference into a vector of integer code strings
-    pub fn convert_refs(test_ref: &str) -> Vec<String> {
+    pub fn convert_refs(test_ref: &str) -> Option<Vec<String>> {
         let vec_ref: String = Self::clean_ref(test_ref);
 
         let titles: Vec<String> = TitleMap::create_vector();
         let my_map: HashMap<&str, &str> = TitleMap::create_hashmap();
     
+        // references that span books; e.g., "Gen 50:1-Exo 2"
         let mut span_refs: Vec<String> = Vec::new();
+        // regular (non-spanning) references; e.g., "Psalm 119:150"
         let mut reg_refs: Vec<String> = Vec::new();
+        // aggregation of integer codes; e.g. "19119150,58003001-58003006"]
         let mut agg_refs: Vec<String> = Vec::new();
     
         let book_span_re = Regex::new(r"\b\d{0,1}[A-Z]+.*-\d{0,1}[A-Z]+.*\b").unwrap();
 
         if !book_span_re.is_match(vec_ref.as_str()) {
             agg_refs.push(Self::process_bcv_ref(&vec_ref));
-            reg_refs.push(vec_ref); 
+            reg_refs.push(vec_ref);
         } else {
             let split_rs: Vec<&str> = vec_ref.split(|c| c == ',' || c == ';').collect();
             for split_r in split_rs.iter() {
@@ -53,6 +56,7 @@ impl Parsing {
         }
 
         let mut final_refs: Vec<String> = Vec::new();
+
         for f in agg_refs.iter() {
             let f_refs: Vec<String> = f.split(',').map(|r| r.to_string()).collect();
             for f_ref in f_refs.iter() {
@@ -62,18 +66,39 @@ impl Parsing {
             }
         }
 
-        for f in &final_refs {
-            if f.contains('-') {
-                let f_split: Vec<&str> = f.split('-').collect();
-                let code1 = Self::extract_digits(f_split[0]);
-                let code2 = Self::extract_digits(f_split[1]);
-                if code1 > code2 {
-                    eprintln!("Warning! Are your references reversed?")
+        // check for common problems
+        let filtered_refs: Vec<_> = final_refs
+            .iter()
+            .filter_map(|final_ref| {
+                if final_ref.contains('-') {
+                    let f_split: Vec<&str> = final_ref.split('-').collect();
+                    let code1 = Self::extract_digits(f_split[0]);
+                    let code2 = Self::extract_digits(f_split[1]);
+
+                    if code1 == 0 || code2 == 0 {
+                        return None;
+                    } else if Self::is_chapter_value_zero(code1) || Self::is_chapter_value_zero(code2) {
+                        return None;
+                    } else if code1 > code2 {
+                        if Self::ends_in_999(code2) {
+                            return Some(vec![format!("{}-{}", code1, code1 + 998)]);
+                        } else {
+                            return Some(vec![format!("{}", code1)]);
+                        }
+                    } else {
+                        return Some(vec![final_ref.clone()]);
+                    }
+                } else {
+                    return Some(vec![final_ref.clone()]);
                 }
-            }
+            })
+            .collect();
+
+        if filtered_refs.is_empty() {
+            None
+        } else {
+            Some(filtered_refs.concat())
         }
-    
-        final_refs
     }
 
     // Uppercase, remove spaces and replace "and" with &
@@ -266,7 +291,7 @@ impl Parsing {
             let first_chapter_verse = parts[0];
             let second_chapter_verse = match parts.get(1) {
                 Some(verse) => verse,
-                None => return Err("Warning: Invalid reference"),
+                None => return Err("Invalid reference")
             };
 
             Ok(format!("{}{:03}{:03}-{}{:03}{:03}",
@@ -281,54 +306,6 @@ impl Parsing {
             // Default case, return an error
             Err("Invalid input format")
         }
-    }
-
-    //  Takes any reference that matches the spanning of two books and returns the id_code.
-    //  E.g., they convert "GE1:1-EX2:1" into 1001001-2002001, or "2PETER1-1JOHN2" into 61001001-62002999
-    pub fn span_ref_to_id_code(span_ref: &str, titles: &Vec<String>, my_map: &HashMap<&str, &str>) -> String {
-        let span_ref_split: Vec<&str> = span_ref.split('-').collect();
-        let mut id_code0 = String::new();
-        let mut id_code1 = String::new();
-
-        for (idx, sr) in span_ref_split.iter().enumerate() {
-            for title in titles.iter() {
-                if sr.contains(title) {
-                    let abbr_title = my_map.get(title.as_str()).ok_or("Error: No value").unwrap();
-                    let verses: String = sr.trim_start_matches(title).to_string();
-                    let chapter_verse: Vec<&str> = verses.split(':').collect();
-                    let chapter = chapter_verse[0];
-                    let verses = chapter_verse.get(1).unwrap_or(&"");
-                    let book_id = BibleMap::get_book_id_by_name(abbr_title);
-
-                    match book_id {
-                        Some(id) => {
-                            let id_code = if verses.is_empty() {
-                                format!("{}{:03}{}", id, chapter.parse::<u32>().unwrap_or(0), if idx == 0 { "001" } else { "999" })
-                            } else {
-                                format!("{}{:03}{:03}", id, chapter.parse::<u32>().unwrap_or(0), verses.parse::<u32>().unwrap_or(0))
-                            };
-                            if idx == 0 {
-                                id_code0 = id_code;
-                            } else {
-                                id_code1 = format!("-{}", id_code);
-                            }
-                        },
-                        _ => eprintln!("Book not found"),
-                    }
-                    break;
-                }
-            }
-        }
-
-        format!("{}{}", id_code0, id_code1)
-    }
-
-    // Used in span_ref_to_id_code
-    pub fn extract_digits(s: &str) -> u32 {
-        s.chars().filter(|&c| c.is_digit(10))
-                .collect::<String>()
-                .parse::<u32>()
-                .unwrap_or(0)
     }
 
     //  Parses the verses in a compound chapter:verse string into a vector of verses
@@ -414,5 +391,65 @@ impl Parsing {
         }
     
         chapter_verse_vec
+    }
+
+    //  Takes any reference that matches the spanning of two books and returns the id_code.
+    //  E.g., they convert "GE1:1-EX2:1" into 1001001-2002001, or "2PETER1-1JOHN2" into 61001001-62002999
+    pub fn span_ref_to_id_code(span_ref: &str, titles: &Vec<String>, my_map: &HashMap<&str, &str>) -> String {
+        let span_ref_split: Vec<&str> = span_ref.split('-').collect();
+        let mut id_code0 = String::new();
+        let mut id_code1 = String::new();
+
+        for (idx, sr) in span_ref_split.iter().enumerate() {
+            for title in titles.iter() {
+                if sr.contains(title) {
+                    let abbr_title = my_map.get(title.as_str()).unwrap();
+                    let ref_minus_title: String = sr.trim_start_matches(title).to_string();
+                    let chapter_verse: Vec<&str> = ref_minus_title.split(':').collect();
+                    let chapter = chapter_verse[0];
+                    let verses = chapter_verse.get(1).unwrap_or(&"");
+                    let book_id = BibleMap::get_book_id_by_name(abbr_title);
+
+                    match book_id {
+                        Some(id) => {
+                            let id_code = if verses.is_empty() {
+                                format!("{}{:03}{}", id, chapter.parse::<u32>().unwrap_or(0), if idx == 0 { "001" } else { "999" })
+                            } else {
+                                format!("{}{:03}{:03}", id, chapter.parse::<u32>().unwrap_or(0), verses.parse::<u32>().unwrap_or(0))
+                            };
+                            if idx == 0 {
+                                id_code0 = id_code;
+                            } else {
+                                id_code1 = format!("-{}", id_code);
+                            }
+                        },
+                        _ => eprintln!("Book not found"),
+                    }
+                    break;
+                }
+            }
+        }
+
+        format!("{}{}", id_code0, id_code1)
+    }
+
+    // Used in span_ref_to_id_code
+    pub fn extract_digits(s: &str) -> u32 {
+        s.chars().filter(|&c| c.is_digit(10))
+                .collect::<String>()
+                .parse::<u32>()
+                .unwrap_or(0)
+    }
+
+    pub fn is_chapter_value_zero(num: u32) -> bool {
+        let div_mil = num / 1000000;
+        let diff = num - div_mil * 1000000;
+        diff < 1000
+    }
+
+    pub fn ends_in_999(num: u32) -> bool {
+        let div_k = num / 1000;
+        let diff = num - div_k * 1000;
+        diff == 999
     }
 }
