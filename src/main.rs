@@ -8,12 +8,12 @@ use std::vec;
 
 fn main() {
     let test_refs: Vec<&str> = vec![
-        "Gen 50:1-Exo 2:1;Psa 5:6,7",
+        "Gen 50:1-Exo 2:1",
         "Jn 3:16-17, Ge 1:1 - Ex 2:1, Lev 9:12",
         "2 Peter 1-1 John 2, Romans 5:12, 2 Corinthians 11:12-Galatians 1:5",
         "Acts 15-16",
         "Genesis 1:1, 2:3",
-        "Psalm 119:150",
+        "Psalm 119:150, Hebrews 3:1-6",
         "Rev. 22:1",
         "III John 1:3",
         "Gen. 1",
@@ -32,12 +32,17 @@ fn main() {
         "Psalm 6:22, 1 John 3:15, Gen 1:1",
         "GENESIS 7:21,19:17,20-27;1 JOHN 1,2,3:27,PSALM 1,2:7",
         "Acts 2:3,16-17,33, 10:44-45, 11:15-16; Matt 3:16-17; John 1:32; Luke 3:22; Is 44:3",
-        "Ezra 1:3-2", // throws a warning
-        "Ruth 3-2", // throws a warning
-        "Numbers 1 - Leviticus 30", // throws a warning
-        "John 3:16:17", // throws an error warning and returns an empty vector
-        "Garbage 3:16", // returns empty vector
-        "1,728", // returns empty vector
+        "Ezra 1:3-2", // returns code for Ezra 1:3
+        "Ruth 3-2", // returns code for Ruth 3
+        "Numbers 1 - Leviticus 30", // returns code for Numbers 1
+        "Josiah 40:1 - Judges 3:7", // returns None
+        "Josiah 40:1 - Judges 3", // returns None
+        "John 3:16, Deut 30 - Josiah 1", // returns code for John 3:16
+        "Deut 30:4 - Josiah 1:2", // returns None
+        "John 3:16:17", // returns None
+        "Garbage 3:16", // returns None
+        "John E:16", // returns None
+        "1,728", // returns None
     ];
 
     // Converts the compound string of references into a string vector of integer codes
