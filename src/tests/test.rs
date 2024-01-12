@@ -1,3 +1,5 @@
+use crate::parse;
+
 #[test]
 fn test_pars() {
     let test_refs: Vec<&str> = vec![
