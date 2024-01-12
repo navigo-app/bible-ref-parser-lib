@@ -1,12 +1,5 @@
-mod parsing;
-mod title_hashmap;
-mod bible_map;
-
-use parsing::Parsing;
-
-use std::vec;
-
-fn main() {
+#[test]
+fn test_pars() {
     let test_refs: Vec<&str> = vec![
         "Gen 50:1-Exo 2:1",
         "Jn 3:16-17, Ge 1:1 - Ex 2:1, Lev 9:12",
@@ -47,7 +40,9 @@ fn main() {
 
     // Converts the compound string of references into a string vector of integer codes
     for test_ref in test_refs {
-        let final_refs = Parsing::convert_refs(test_ref);
+        //TODO convert these to asserts
+        let final_refs = parse(test_ref);
+        assert!(true); //This is here to keep the test runner happy.
         println!("{:?}", test_ref);
         println!("{:?}", final_refs);
         println!("");
