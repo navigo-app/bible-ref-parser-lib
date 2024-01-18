@@ -49,7 +49,7 @@ fn test_pars() {
 		Some(vec!["7001001-7001999".to_string(), "20002001-20002999".to_string()]));
 	assert_eq!(
 		parse("Gen 7:21,19:17,20-27"),
-		Some(vec!["1007021".to_string(), "1019Invalid ref017".to_string(), "1019020-1019027".to_string()]));
+		Some(vec!["1007021".to_string(), "1019017".to_string(), "1019020-1019027".to_string()]));
 	assert_eq!(
 		parse("Mark 1,2,3:27"),
 		Some(vec!["41001001-41001999".to_string(), "41002001-41002999".to_string(), "41003027".to_string()]));
