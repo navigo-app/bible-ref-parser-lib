@@ -12,11 +12,11 @@ pub fn parse(test_ref: &str) -> Option<Vec<String>> {
     let titles: Vec<String> = TitleMap::create_vector();
     let my_map: HashMap<&str, &str> = TitleMap::create_hashmap();
 
-    // references that span books; e.g., "Gen 50:1-Exo 2"
+    // references that span books; e.g., ["Gen 50:1-Exo 2"]
     let mut span_refs: Vec<String> = Vec::new();
-    // regular (non-spanning) references; e.g., "Psalm 119:150"
+    // regular (non-spanning) references; e.g., ["Psalm 119:150"]
     let mut reg_refs: Vec<String> = Vec::new();
-    // aggregation of integer codes; e.g. "19119150,58003001-58003006"]
+    // aggregation of integer codes; e.g. ["19119150,58003001-58003006"]
     let mut agg_refs: Vec<String> = Vec::new();
 
     let book_span_re = Regex::new(r"\b\d{0,1}[A-Z]+.*-\d{0,1}[A-Z]+.*\b").unwrap();
@@ -95,14 +95,19 @@ pub fn parse(test_ref: &str) -> Option<Vec<String>> {
     }
 }
 
-// Uppercase, remove spaces and replace "and" with &
+// Clean reference into a standard form
 pub fn clean_ref(test_ref: &str) -> String {
-    let return_ref = test_ref
-        .to_uppercase()
-        .replace(" ", "")
-        .replace("AND", "&");
+    // remove a or b after verse number
+    let pattern = Regex::new(r"(\d)[ab]{1}").unwrap();
+    let return_ref = pattern.replace_all(test_ref, |caps: &regex::Captures| {
+        caps[1].to_string()
+    });
 
     return_ref
+        .to_uppercase()
+        .replace(" ", "")
+        .replace(".", ":") // for chapter:verse; book punctuation gets stripped later
+        .replace("AND", "&")
 }
 
 // Convert book chapter:verses into integer code string
@@ -399,7 +404,8 @@ fn span_ref_to_id_code(span_ref: &str, titles: &Vec<String>, my_map: &HashMap<&s
             if sr.contains(title) {
                 let abbr_title = my_map.get(title.as_str()).unwrap();
                 let ref_minus_title: String = sr.trim_start_matches(title).to_string();
-                let chapter_verse: Vec<&str> = ref_minus_title.split(':').collect();
+                let chapter_verse: Vec<&str> = ref_minus_title.split(|c| c == ':' || c == '.').collect();
+
                 let chapter = chapter_verse[0];
                 let verses = chapter_verse.get(1).unwrap_or(&"");
                 let book_id = BibleMap::get_book_id_by_name(abbr_title);
