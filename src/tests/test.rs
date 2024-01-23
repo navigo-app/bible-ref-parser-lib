@@ -104,4 +104,10 @@ fn test_pars() {
 	assert_eq!(
 		parse("1,728"),
 		None);
+	// assert_eq!(
+	// 	parse("Rev. 22.1; Rev 21"),
+	// 	Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
+	assert_eq!(
+		parse("Rev. 22.1, Rev 21"),
+		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
 }
