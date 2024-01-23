@@ -3,6 +3,12 @@ use crate::parse;
 #[test]
 fn test_pars() {
 	assert_eq!(
+		parse("Rev. 22.1; Rev 21"),
+		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
+	assert_eq!(
+		parse("Rev. 22.1, Rev 21"),
+		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
+	assert_eq!(
 		parse("Gen 50-Exo 2"),
 		Some(vec!["1050001-2002999".to_string()]));
 	assert_eq!(
@@ -18,8 +24,8 @@ fn test_pars() {
 		parse("Genesis 1:1, 2:3"),
 		Some(vec!["1001001".to_string(), "1002003".to_string()]));
 	assert_eq!(
-		parse("Psalm 119:150, Hebrews 3:1-6"),
-		Some(vec!["19119150".to_string(), "58003001-58003006".to_string()]));
+		parse("Psalm 119:150, Hebrews 3:1-6, Psalm 5"),
+		Some(vec!["19119150".to_string(), "58003001-58003006".to_string(), "19005001-19005999".to_string()]));
 	assert_eq!(
 		parse("Rev. 22.1"),
 		Some(vec!["66022001".to_string()]));
@@ -104,10 +110,4 @@ fn test_pars() {
 	assert_eq!(
 		parse("1,728"),
 		None);
-	// assert_eq!(
-	// 	parse("Rev. 22.1; Rev 21"),
-	// 	Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
-	assert_eq!(
-		parse("Rev. 22.1, Rev 21"),
-		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
 }

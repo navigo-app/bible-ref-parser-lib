@@ -171,11 +171,10 @@ pub fn parse_compound_ref(input: &str) -> (Vec<String>, Vec<String>) {
 
     // iterate through the number of books in the input to get the books and chapter & verses
     for i in 0..book_num {
-        // m is the Option<book>s in the input (in reverse order)
+        // ref_book is the Option<book>s in the input (in reverse order)
         let ref_book: Option<&String> = book_match_vec.get(book_num - i - 1);
         // index is the Option<index> of the start of the book title (in reverse order)
-        let index = ref_book
-            .map(|val| temp_input.find(val).unwrap_or(temp_input.len()));
+        let index = ref_book.map(|val| temp_input.rfind(val).unwrap_or(temp_input.len()));
         // left and right are the input divided left and right at the indexes
         let (left, right) = temp_input.split_at(index.unwrap());
 
