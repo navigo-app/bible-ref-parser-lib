@@ -1,5 +1,5 @@
 mod tests;
-mod utils;
+pub mod utils;
 
 use std::collections::HashMap;
 use regex::Regex;
