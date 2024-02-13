@@ -369,7 +369,24 @@ impl BibleMap {
     }
 
     pub fn get_book_code_by_id(mut code: u32) -> Option<String> {
-        while code >= 100 {  code /= 10; } //Reduces any code down to the first two digits.
+
+        //Here are the possible valid integers a book could be gotten from.
+
+        // 8        << Ruth             (1 digit)
+        // 8001     << Ruth 1           (4 digits)
+        // 8001001  << Ruth 1:1         (7 Digits)
+        // 66       << Revelation       (2 digits)
+        // 66001    << Revelation 1     (5 Digits)
+        // 66001001 << Revelation 1:1   (8 Digits)
+
+        // This Reduces any code down to the book code
+        //  if the code is a 2, 5, or 8-digit code then the first two are the book code.
+        //  otherwise (if it's a 1, 4 or 7-digit code) then it's just the first digit.
+        if code >= 10000000 || (code >= 10000 && code <= 99999) || (code >= 10 && code <= 99) {
+            while code >= 100 {  code /= 10; }
+        } else {
+            while code >= 10 {  code /= 10; }
+        }
 
         let map = [
             (1, "GEN"),

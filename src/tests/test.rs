@@ -144,4 +144,10 @@ fn test_utils() {
 		code,
 		Some("GEN".to_string())
 	);
+
+	let code = BibleMap::get_book_code_by_id(8001001);
+	assert_eq!(
+		code,
+		Some("RUT".to_string())
+	);
 }
