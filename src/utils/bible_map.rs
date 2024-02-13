@@ -368,7 +368,9 @@ impl BibleMap {
         None
     }
 
-    pub fn get_book_code_by_id(code: u32) -> Option<String> {
+    pub fn get_book_code_by_id(mut code: u32) -> Option<String> {
+        while code >= 100 {  code /= 10; } //Reduces any code down to the first two digits.
+
         let map = [
             (1, "GEN"),
             (2, "EXO"),

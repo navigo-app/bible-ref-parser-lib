@@ -1,7 +1,8 @@
 use crate::parse;
+use crate::utils::bible_map::*;
 
 #[test]
-fn test_pars() {
+fn test_parse() {
 	assert_eq!(
 		parse("Rev. 22.1; Rev 21"),
 		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
@@ -110,4 +111,37 @@ fn test_pars() {
 	assert_eq!(
 		parse("1,728"),
 		None);
+}
+
+#[test]
+fn test_utils() {
+	let code = BibleMap::get_book_code_by_id(66001001);
+	assert_eq!(
+		code,
+		Some("REV".to_string())
+	);
+
+	let code = BibleMap::get_book_code_by_id(10);
+	assert_eq!(
+		code,
+		Some("2SA".to_string())
+	);
+
+	let code = BibleMap::get_book_code_by_id(11);
+	assert_eq!(
+		code,
+		Some("1KI".to_string())
+	);
+
+	let code = BibleMap::get_book_code_by_id(1);
+	assert_eq!(
+		code,
+		Some("GEN".to_string())
+	);
+
+	let code = BibleMap::get_book_code_by_id(01);
+	assert_eq!(
+		code,
+		Some("GEN".to_string())
+	);
 }
