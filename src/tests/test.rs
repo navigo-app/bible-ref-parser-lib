@@ -4,8 +4,8 @@ use crate::utils::bible_map::*;
 #[test]
 fn test_parse() {
 	assert_eq!(
-		parse("Rev. 22.1; Rev 21"),
-		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
+		parse("Job, Lev - Num"),
+		Some(vec!["18001001-18999999".to_string(), "3001001-4999999".to_string()]));
 	assert_eq!(
 		parse("Rev. 22.1, Rev 21"),
 		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
@@ -90,6 +90,15 @@ fn test_parse() {
 	assert_eq!(
 		parse("John 3:16, Deut 30 - Josiah 1"),
 		Some(vec!["43003016".to_string()]));
+	assert_eq!(
+		parse("matt3 13 17"),
+		None);
+	assert_eq!(
+		parse("Joshua 2415-16"),
+		None);
+	assert_eq!(
+		parse("2 Sam 1:1220"),
+		None);
 	assert_eq!(
 		parse("Josiah 40:1 - Judges 3:7"),
 		None);
