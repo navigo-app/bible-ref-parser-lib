@@ -451,13 +451,19 @@ fn span_ref_to_id_code(span_ref: &str, titles: &Vec<String>, my_map: &HashMap<&s
 
                 if ref_minus_title.chars().any(char::is_alphabetic) {
                     // the title contained but never equals a recognized title, so return blank
-                    return String::new()
-                };
+                    eprintln!("Book not found");
+                    return String::new();
+                }
 
                 let chapter_verse: Vec<&str> = ref_minus_title.split(|c| c == ':' || c == '.').collect();
                 let chapter = chapter_verse[0].parse::<u32>().unwrap_or(0);
                 let verses = chapter_verse.get(1).unwrap_or(&"");
                 let book_id = BibleMap::get_book_id_by_name(abbr_title);
+
+                if chapter > 999 {
+                    eprintln!("Chapter value too high");
+                    return String::new();
+                }
 
                 match book_id {
                     Some(id) => {
@@ -474,10 +480,15 @@ fn span_ref_to_id_code(span_ref: &str, titles: &Vec<String>, my_map: &HashMap<&s
                                          if idx == 0 { "001" } else { "999" })
                             }
                         } else {
+                            let sverses = verses.parse::<u32>().unwrap();
+                            if sverses > 999 {
+                                eprintln!("Verse value too high");
+                                return String::new();
+                            }
                             format!("{}{:03}{:03}",
                                      id,
                                      chapter,
-                                     verses.parse::<u32>().unwrap_or(0))
+                                     sverses)
                         };
                         if idx == 0 {
                             id_code0 = id_code;
