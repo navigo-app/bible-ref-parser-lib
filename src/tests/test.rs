@@ -7,6 +7,9 @@ fn test_parse() {
 		parse("Job, Lev - Num"),
 		Some(vec!["18001001-18999999".to_string(), "3001001-4999999".to_string()]));
 	assert_eq!(
+		parse("Revelation 12:9 and 20:2"),
+		Some(vec!["66012009".to_string(), "66020002".to_string()]));
+	assert_eq!(
 		parse("Rev. 22.1, Rev 21"),
 		Some(vec!["66022001".to_string(), "66021001-66021999".to_string()]));
 	assert_eq!(
