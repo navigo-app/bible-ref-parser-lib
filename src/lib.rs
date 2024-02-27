@@ -268,7 +268,15 @@ fn bcv_ref_to_id_code(bcv_ref: &str) -> Result<String, &'static str> {
             }
         // book and a single chapter
         } else {
-            let schapter = s_chapter.parse::<u32>().unwrap();
+            let mut schapter:u32 = 0;
+            match s_chapter.parse::<u32>() {
+                Ok(_) => {
+                    schapter = s_chapter.parse::<u32>().unwrap();
+                }
+                Err(_) => {
+                    println!("The chapter number is not numeric.");
+                }
+            }
 
             if schapter > 999 {
                 Err("Chapter value too high")
