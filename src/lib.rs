@@ -107,7 +107,8 @@ pub fn clean_ref(test_ref: &str) -> String {
         .to_uppercase()
         .replace(" ", "")
         .replace(".", ":") // for chapter:verse; book punctuation gets stripped later
-        .replace("AND", "&")
+        .replace("AND", ",")
+        .replace("&", ",")
 }
 
 // Convert book chapter:verses into integer code string
