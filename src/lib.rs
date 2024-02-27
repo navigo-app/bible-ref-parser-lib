@@ -108,6 +108,7 @@ pub fn clean_ref(test_ref: &str) -> String {
         .replace(" ", "")
         .replace(".", ":") // for chapter:verse; book punctuation gets stripped later
         .replace("AND", ",")
+        .replace("&", ",")
 }
 
 // Convert book chapter:verses into integer code string
