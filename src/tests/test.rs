@@ -97,6 +97,9 @@ fn test_parse() {
 		parse("John 3:16, Deut 30 - Josiah 1"),
 		Some(vec!["43003016".to_string()]));
 	assert_eq!(
+		parse("Deuteronomy 33:1–5"), //Has an "U+2013 : EN DASH" character instead of a -
+		Some(vec!["5033001-5033005".to_string()]));
+	assert_eq!(
 		parse("matt3 13 17"),
 		None);
 	assert_eq!(
