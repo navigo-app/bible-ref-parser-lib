@@ -368,7 +368,7 @@ impl BibleMap {
         None
     }
 
-    pub fn get_book_code_by_id(mut code: u32) -> Option<String> {
+    pub fn get_book_code_by_id(mut ref_id: u32) -> Option<String> {
 
         //Here are the possible valid integers a book could be gotten from.
 
@@ -379,13 +379,13 @@ impl BibleMap {
         // 66001    << Revelation 1     (5 Digits)
         // 66001001 << Revelation 1:1   (8 Digits)
 
-        // This Reduces any code down to the book code
-        //  if the code is a 2, 5, or 8-digit code then the first two are the book code.
-        //  otherwise (if it's a 1, 4 or 7-digit code) then it's just the first digit.
-        if code >= 10000000 || (code >= 10000 && code <= 99999) || (code >= 10 && code <= 99) {
-            while code >= 100 {  code /= 10; }
+        // This reduces any ref_id down to the book code
+        // If the ref_id is a 2, 5, or 8-digit number then the first two digits are the book code.
+        // Otherwise (if the ref_id is a 1, 4 or 7-digit number) the first digit is the book code.
+        if ref_id >= 10000000 || (ref_id >= 10000 && ref_id <= 99999) || (ref_id >= 10 && ref_id <= 99) {
+            while ref_id >= 100 {  ref_id /= 10; }
         } else {
-            while code >= 10 {  code /= 10; }
+            while ref_id >= 10 {  ref_id /= 10; }
         }
 
         let map = [
@@ -458,21 +458,101 @@ impl BibleMap {
         ];
 
         for (key, value) in map.iter() {
-            if key == &code {
+            if key == &ref_id {
                 return Some(value.to_string());
             }
         }
 
         None
-    }    
+    }
 
-    pub fn get_ref_by_code(code: &str) -> Option<String> {
-        let code_length = code.len();
-        if code_length < 7 {
+    pub fn get_book_name_by_id(book_id: u32) -> Option<String> {
+        let map = [
+            (1, "Genesis"),
+            (2, "Exodus"),
+            (3, "Leviticus"),
+            (4, "Numbers"),
+            (5, "Deuteronomy"),
+            (6, "Joshua"),
+            (7, "Judges"),
+            (8, "Ruth"),
+            (9, "1 Samuel"),
+            (10, "2 Samuel"),
+            (11, "1 Kings"),
+            (12, "2 Kings"),
+            (13, "1 Chronicles"),
+            (14, "2 Chronicles"),
+            (15, "Ezra"),
+            (16, "Nehemiah"),
+            (17, "Esther"),
+            (18, "Job"),
+            (19, "Psalms"),
+            (20, "Proverbs"),
+            (21, "Ecclesiastes"),
+            (22, "Song of Solomon"),
+            (23, "Isaiah"),
+            (24, "Jeremiah"),
+            (25, "Lamentations"),
+            (26, "Ezekiel"),
+            (27, "Daniel"),
+            (28, "Hosea"),
+            (29, "Joel"),
+            (30, "Amos"),
+            (31, "Obadiah"),
+            (32, "Jonah"),
+            (33, "Micah"),
+            (34, "Nahum"),
+            (35, "Habakkuk"),
+            (36, "Zephaniah"),
+            (37, "Haggai"),
+            (38, "Zechariah"),
+            (39, "Malachi"),
+            (40, "Matthew"),
+            (41, "Mark"),
+            (42, "Luke"),
+            (43, "John"),
+            (44, "Acts"),
+            (45, "Romans"),
+            (46, "1 Corinthians"),
+            (47, "2 Corinthians"),
+            (48, "Galatians"),
+            (49, "Ephesians"),
+            (50, "Philippians"),
+            (51, "Colossians"),
+            (52, "1 Thessalonians"),
+            (53, "2 Thessalonians"),
+            (54, "1 Timothy"),
+            (55, "2 Timothy"),
+            (56, "Titus"),
+            (57, "Philemon"),
+            (58, "Hebrews"),
+            (59, "James"),
+            (60, "1 Peter"),
+            (61, "2 Peter"),
+            (62, "1 John"),
+            (63, "2 John"),
+            (64, "3 John"),
+            (65, "Jude"),
+            (66, "Revelation"),
+        ];
+
+        for (key, value) in map.iter() {
+            if key == &book_id {
+                return Some(value.to_string());
+            }
+        }
+
+        None
+    }
+
+    pub fn get_ref_by_id(ref_id: u32) -> Option<String> {
+        let ref_id = &ref_id.to_string();
+        let ref_id_length = ref_id.len();
+        if ref_id_length < 7 {
             return None;
         }
 
-        let (book_chap_code, verse_code) = code.split_at(code_length - 3);
+        let (book_chap_code, verse_code) = ref_id.split_at(ref_id_length - 3);
         let verse = verse_code.parse::<u32>().unwrap_or(0);
 
         let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() -3);
@@ -480,6 +560,25 @@ impl BibleMap {
         let chapter = chapter_code.parse::<u32>().unwrap_or(0);
         let book_id = book_code.parse::<u32>().unwrap_or(0);
         let book_code = Self::get_book_code_by_id(book_id);
+
+        Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+    }
+
+    pub fn get_human_ref_by_id(ref_id: u32) -> Option<String> {
+        let ref_id = &ref_id.to_string();
+        let ref_id_length = ref_id.len();
+        if ref_id_length < 7 {
+            return None;
+        }
+
+        let (book_chap_code, verse_code) = ref_id.split_at(ref_id_length - 3);
+        let verse = verse_code.parse::<u32>().unwrap_or(0);
+
+        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() -3);
+
+        let chapter = chapter_code.parse::<u32>().unwrap_or(0);
+        let book_id = book_code.parse::<u32>().unwrap_or(0);
+        let book_code = Self::get_book_name_by_id(book_id);
 
         Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
     }

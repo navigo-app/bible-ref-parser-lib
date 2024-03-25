@@ -176,4 +176,28 @@ fn test_utils() {
 		Some("JUD".to_string())
 	);
 
+	let code = BibleMap::get_ref_by_id(1001001);
+	assert_eq!(
+		code,
+		Some("GEN 1:1".to_string())
+	);
+
+	let code = BibleMap::get_ref_by_id(66022021);
+	assert_eq!(
+		code,
+		Some("REV 22:21".to_string())
+	);
+
+	let code = BibleMap::get_human_ref_by_id(46001001);
+	assert_eq!(
+		code,
+		Some("1 Corinthians 1:1".to_string())
+	);
+
+	let code = BibleMap::get_human_ref_by_id(66022021);
+	assert_eq!(
+		code,
+		Some("Revelation 22:21".to_string())
+	);
+
 }
