@@ -481,7 +481,7 @@ impl BibleMap {
         let book_id = book_code.parse::<u32>().unwrap_or(0);
         let book_code = Self::get_book_code_by_id(book_id);
 
-        Some(format!("{}{}:{}", book_code.unwrap_or_default(), chapter, verse))
+        Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
     }
 
 }
