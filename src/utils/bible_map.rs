@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 
-pub struct BibleMap {
-
-}
+pub struct BibleMap {}
 
 impl BibleMap {
-
     pub fn get_book_id_by_name(name: &str) -> Option<u32> {
         match BibleMap::get_book_code_by_name(name) {
             None => None,
@@ -383,9 +380,9 @@ impl BibleMap {
         // If the ref_id is a 2, 5, or 8-digit number then the first two digits are the book code.
         // Otherwise (if the ref_id is a 1, 4 or 7-digit number) the first digit is the book code.
         if ref_id >= 10000000 || (ref_id >= 10000 && ref_id <= 99999) || (ref_id >= 10 && ref_id <= 99) {
-            while ref_id >= 100 {  ref_id /= 10; }
+            while ref_id >= 100 { ref_id /= 10; }
         } else {
-            while ref_id >= 10 {  ref_id /= 10; }
+            while ref_id >= 10 { ref_id /= 10; }
         }
 
         let map = [
@@ -546,25 +543,28 @@ impl BibleMap {
     }
 
     pub fn get_ref_by_id(ref_id: u32) -> Option<String> {
-        let ref_id = &ref_id.to_string();
-        let ref_id_length = ref_id.len();
-        if ref_id_length < 7 {
-            return None;
-        }
+        let (chapter, verse, book_id) =
+            Self::get_chapter_verse_book_by_id(&ref_id).unwrap();
 
-        let (book_chap_code, verse_code) = ref_id.split_at(ref_id_length - 3);
-        let verse = verse_code.parse::<u32>().unwrap_or(0);
-
-        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() -3);
-
-        let chapter = chapter_code.parse::<u32>().unwrap_or(0);
-        let book_id = book_code.parse::<u32>().unwrap_or(0);
         let book_code = Self::get_book_code_by_id(book_id);
 
         Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
     }
 
     pub fn get_human_ref_by_id(ref_id: u32) -> Option<String> {
+        let (chapter, verse, book_id) =
+            Self::get_chapter_verse_book_by_id(&ref_id).unwrap();
+        let book_code = Self::get_book_name_by_id(book_id);
+
+        Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+    }
+
+    // pub fn get_human_ref_by_id_chinese(ref_id: u32) -> Option<String> {
+    //     let (chapter, verse, book_id) =
+    //     Self::get_chapter_verse_book_by_id(&ref_id).unwrap_or(return None);
+    // }
+
+    pub fn get_chapter_verse_book_by_id(ref_id: &u32) -> Option<(u32, u32, u32)> {
         let ref_id = &ref_id.to_string();
         let ref_id_length = ref_id.len();
         if ref_id_length < 7 {
@@ -574,13 +574,11 @@ impl BibleMap {
         let (book_chap_code, verse_code) = ref_id.split_at(ref_id_length - 3);
         let verse = verse_code.parse::<u32>().unwrap_or(0);
 
-        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() -3);
+        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() - 3);
 
         let chapter = chapter_code.parse::<u32>().unwrap_or(0);
         let book_id = book_code.parse::<u32>().unwrap_or(0);
-        let book_code = Self::get_book_name_by_id(book_id);
 
-        Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+        return Some((chapter, verse, book_id))
     }
-
 }
