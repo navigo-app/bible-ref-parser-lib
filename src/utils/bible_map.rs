@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 
-pub struct BibleMap {
-
-}
+pub struct BibleMap {}
 
 impl BibleMap {
-
     pub fn get_book_id_by_name(name: &str) -> Option<u32> {
         match BibleMap::get_book_code_by_name(name) {
             None => None,
@@ -368,7 +365,7 @@ impl BibleMap {
         None
     }
 
-    pub fn get_book_code_by_id(mut code: u32) -> Option<String> {
+    pub fn get_book_code_by_id(mut ref_id: u32) -> Option<String> {
 
         //Here are the possible valid integers a book could be gotten from.
 
@@ -379,13 +376,13 @@ impl BibleMap {
         // 66001    << Revelation 1     (5 Digits)
         // 66001001 << Revelation 1:1   (8 Digits)
 
-        // This Reduces any code down to the book code
-        //  if the code is a 2, 5, or 8-digit code then the first two are the book code.
-        //  otherwise (if it's a 1, 4 or 7-digit code) then it's just the first digit.
-        if code >= 10000000 || (code >= 10000 && code <= 99999) || (code >= 10 && code <= 99) {
-            while code >= 100 {  code /= 10; }
+        // This reduces any ref_id down to the book code
+        // If the ref_id is a 2, 5, or 8-digit number then the first two digits are the book code.
+        // Otherwise (if the ref_id is a 1, 4 or 7-digit number) the first digit is the book code.
+        if ref_id >= 10000000 || (ref_id >= 10000 && ref_id <= 99999) || (ref_id >= 10 && ref_id <= 99) {
+            while ref_id >= 100 { ref_id /= 10; }
         } else {
-            while code >= 10 {  code /= 10; }
+            while ref_id >= 10 { ref_id /= 10; }
         }
 
         let map = [
@@ -458,30 +455,224 @@ impl BibleMap {
         ];
 
         for (key, value) in map.iter() {
-            if key == &code {
+            if key == &ref_id {
                 return Some(value.to_string());
             }
         }
 
         None
-    }    
+    }
 
-    pub fn get_ref_by_code(code: &str) -> Option<String> {
-        let code_length = code.len();
-        if code_length < 7 {
+    pub fn get_book_name_by_id(book_id: u32) -> Option<String> {
+        let map = [
+            (1, "Genesis"),
+            (2, "Exodus"),
+            (3, "Leviticus"),
+            (4, "Numbers"),
+            (5, "Deuteronomy"),
+            (6, "Joshua"),
+            (7, "Judges"),
+            (8, "Ruth"),
+            (9, "1 Samuel"),
+            (10, "2 Samuel"),
+            (11, "1 Kings"),
+            (12, "2 Kings"),
+            (13, "1 Chronicles"),
+            (14, "2 Chronicles"),
+            (15, "Ezra"),
+            (16, "Nehemiah"),
+            (17, "Esther"),
+            (18, "Job"),
+            (19, "Psalms"),
+            (20, "Proverbs"),
+            (21, "Ecclesiastes"),
+            (22, "Song of Solomon"),
+            (23, "Isaiah"),
+            (24, "Jeremiah"),
+            (25, "Lamentations"),
+            (26, "Ezekiel"),
+            (27, "Daniel"),
+            (28, "Hosea"),
+            (29, "Joel"),
+            (30, "Amos"),
+            (31, "Obadiah"),
+            (32, "Jonah"),
+            (33, "Micah"),
+            (34, "Nahum"),
+            (35, "Habakkuk"),
+            (36, "Zephaniah"),
+            (37, "Haggai"),
+            (38, "Zechariah"),
+            (39, "Malachi"),
+            (40, "Matthew"),
+            (41, "Mark"),
+            (42, "Luke"),
+            (43, "John"),
+            (44, "Acts"),
+            (45, "Romans"),
+            (46, "1 Corinthians"),
+            (47, "2 Corinthians"),
+            (48, "Galatians"),
+            (49, "Ephesians"),
+            (50, "Philippians"),
+            (51, "Colossians"),
+            (52, "1 Thessalonians"),
+            (53, "2 Thessalonians"),
+            (54, "1 Timothy"),
+            (55, "2 Timothy"),
+            (56, "Titus"),
+            (57, "Philemon"),
+            (58, "Hebrews"),
+            (59, "James"),
+            (60, "1 Peter"),
+            (61, "2 Peter"),
+            (62, "1 John"),
+            (63, "2 John"),
+            (64, "3 John"),
+            (65, "Jude"),
+            (66, "Revelation"),
+        ];
+
+        for (key, value) in map.iter() {
+            if key == &book_id {
+                return Some(value.to_string());
+            }
+        }
+
+        None
+    }
+
+    pub fn get_chinese_book_name_by_id(book_id: u32) -> Option<String> {
+        let map = [
+            (1, "创世记"),
+            (2, "出埃及记"),
+            (3, "利未记"),
+            (4, "民数记"),
+            (5, "申命记"),
+            (6, "约书亚记"),
+            (7, "士师记"),
+            (8, "路得记"),
+            (9, "撒母耳记上"),
+            (10, "撒母耳记下"),
+            (11, "列王纪上"),
+            (12, "列王纪下"),
+            (13, "历代志上"),
+            (14, "历代志下"),
+            (15, "以斯拉记"),
+            (16, "尼希米记"),
+            (17, "以斯帖记"),
+            (18, "约伯记"),
+            (19, "诗篇"),
+            (20, "箴言"),
+            (21, "传道书"),
+            (22, "雅歌"),
+            (23, "以赛亚书"),
+            (24, "耶利米书"),
+            (25, "耶利米哀歌"),
+            (26, "以西结书"),
+            (27, "但以理书"),
+            (28, "何西阿书"),
+            (29, "约珥书"),
+            (30, "阿摩司书"),
+            (31, "俄巴底亚书"),
+            (32, "约拿书"),
+            (33, "弥迦书"),
+            (34, "那鸿书"),
+            (35, "哈巴谷书"),
+            (36, "西番雅书"),
+            (37, "哈该书"),
+            (38, "撒迦利亚书"),
+            (39, "玛拉基书"),
+            (40, "马太福音"),
+            (41, "马可福音"),
+            (42, "路加福音"),
+            (43, "约翰福音"),
+            (44, "使徒行传"),
+            (45, "罗马书"),
+            (46, "哥林多前书"),
+            (47, "哥林多后书"),
+            (48, "加拉太书"),
+            (49, "以弗所书"),
+            (50, "腓立比书"),
+            (51, "歌罗西书"),
+            (52, "帖撒罗尼迦前书"),
+            (53, "帖撒罗尼迦后书"),
+            (54, "提摩太前书"),
+            (55, "提摩太后书"),
+            (56, "提多书"),
+            (57, "腓利门书"),
+            (58, "希伯来书"),
+            (59, "雅各书"),
+            (60, "彼得前书"),
+            (61, "彼得后书"),
+            (62, "约翰一书"),
+            (63, "约翰二书"),
+            (64, "约翰三书"),
+            (65, "犹大书"),
+            (66, "启示录"),
+        ];
+
+        for (key, value) in map.iter() {
+            if key == &book_id {
+                return Some(value.to_string());
+            }
+        }
+
+        None
+    }
+
+    pub fn get_chapter_verse_book_by_id(ref_id: &u32) -> Option<(u32, u32, u32)> {
+        let ref_id = &ref_id.to_string();
+        let ref_id_length = ref_id.len();
+        if ref_id_length < 7 {
             return None;
         }
 
-        let (book_chap_code, verse_code) = code.split_at(code_length - 3);
+        let (book_chap_code, verse_code) = ref_id.split_at(ref_id_length - 3);
         let verse = verse_code.parse::<u32>().unwrap_or(0);
 
-        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() -3);
+        let (book_code, chapter_code) = book_chap_code.split_at(book_chap_code.len() - 3);
 
         let chapter = chapter_code.parse::<u32>().unwrap_or(0);
         let book_id = book_code.parse::<u32>().unwrap_or(0);
-        let book_code = Self::get_book_code_by_id(book_id);
 
-        Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+        return Some((chapter, verse, book_id))
     }
 
+    pub fn get_ref_by_id(ref_id: u32) -> Option<String> {
+        let (chapter, verse, book_id) =
+            Self::get_chapter_verse_book_by_id(&ref_id).unwrap();
+
+        let book_code = Self::get_book_code_by_id(book_id);
+
+        if book_code == None {
+            return None
+        } else {
+            return Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+        }
+    }
+
+    pub fn get_human_ref_by_id(ref_id: u32) -> Option<String> {
+        let (chapter, verse, book_id) =
+            Self::get_chapter_verse_book_by_id(&ref_id).unwrap();
+        let book_code = Self::get_book_name_by_id(book_id);
+
+        if book_code == None {
+            return None
+        } else {
+            return Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+        }
+    }
+
+    pub fn get_chinese_ref_by_id(ref_id: u32) -> Option<String> {
+        let (chapter, verse, book_id) =
+            Self::get_chapter_verse_book_by_id(&ref_id).unwrap();
+        let book_code = Self::get_chinese_book_name_by_id(book_id);
+
+        if book_code == None {
+            return None
+        } else {
+            return Some(format!("{} {}:{}", book_code.unwrap_or_default(), chapter, verse))
+        }
+    }
 }

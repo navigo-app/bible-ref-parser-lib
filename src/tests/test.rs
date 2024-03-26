@@ -169,11 +169,46 @@ fn test_utils() {
 		Some("RUT".to_string())
 	);
 
-
 	let code = BibleMap::get_book_code_by_id(65001005);
 	assert_eq!(
 		code,
 		Some("JUD".to_string())
 	);
+
+	let code = BibleMap::get_ref_by_id(1001001);
+	assert_eq!(
+		code,
+		Some("GEN 1:1".to_string())
+	);
+
+	let code = BibleMap::get_ref_by_id(66022021);
+	assert_eq!(
+		code,
+		Some("REV 22:21".to_string())
+	);
+
+	let code = BibleMap::get_human_ref_by_id(46001001);
+	assert_eq!(
+		code,
+		Some("1 Corinthians 1:1".to_string())
+	);
+
+	let code = BibleMap::get_human_ref_by_id(66022021);
+	assert_eq!(
+		code,
+		Some("Revelation 22:21".to_string())
+	);
+
+	let code = BibleMap::get_human_ref_by_id(99999999);
+	assert_eq!(
+		code,
+		None
+	);
+
+	let code = BibleMap::get_chinese_ref_by_id(1001001);
+	assert_eq!(
+		code,
+		Some("创世记 1:1".to_string())
+	)
 
 }
