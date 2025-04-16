@@ -1,5 +1,5 @@
 mod tests;
-mod utils;
+pub mod utils;
 
 use std::collections::HashMap;
 use regex::Regex;
@@ -12,11 +12,11 @@ pub fn parse(test_ref: &str) -> Option<Vec<String>> {
     let titles: Vec<String> = TitleMap::create_vector();
     let my_map: HashMap<&str, &str> = TitleMap::create_hashmap();
 
-    // references that span books; e.g., "Gen 50:1-Exo 2"
+    // references that span books; e.g., ["Gen 50:1-Exo 2"]
     let mut span_refs: Vec<String> = Vec::new();
-    // regular (non-spanning) references; e.g., "Psalm 119:150"
+    // regular (non-spanning) references; e.g., ["Psalm 119:150"]
     let mut reg_refs: Vec<String> = Vec::new();
-    // aggregation of integer codes; e.g. "19119150,58003001-58003006"]
+    // aggregation of integer codes; e.g. ["19119150,58003001-58003006"]
     let mut agg_refs: Vec<String> = Vec::new();
 
     let book_span_re = Regex::new(r"\b\d{0,1}[A-Z]+.*-\d{0,1}[A-Z]+.*\b").unwrap();
@@ -95,14 +95,21 @@ pub fn parse(test_ref: &str) -> Option<Vec<String>> {
     }
 }
 
-// Uppercase, remove spaces and replace "and" with &
+// Clean reference into a standard form
 pub fn clean_ref(test_ref: &str) -> String {
-    let return_ref = test_ref
-        .to_uppercase()
-        .replace(" ", "")
-        .replace("AND", "&");
+    // remove a or b after verse number
+    let pattern = Regex::new(r"(\d)[ab]{1}").unwrap();
+    let return_ref = pattern.replace_all(test_ref, |caps: &regex::Captures| {
+        caps[1].to_string()
+    });
 
     return_ref
+        .to_uppercase()
+        .replace(" ", "")
+        .replace(".", ":") // for chapter:verse; book punctuation gets stripped later
+        .replace("AND", ",")
+        .replace("&", ",")
+        .replace("–", "-")
 }
 
 // Convert book chapter:verses into integer code string
@@ -166,11 +173,10 @@ pub fn parse_compound_ref(input: &str) -> (Vec<String>, Vec<String>) {
 
     // iterate through the number of books in the input to get the books and chapter & verses
     for i in 0..book_num {
-        // m is the Option<book>s in the input (in reverse order)
+        // ref_book is the Option<book>s in the input (in reverse order)
         let ref_book: Option<&String> = book_match_vec.get(book_num - i - 1);
         // index is the Option<index> of the start of the book title (in reverse order)
-        let index = ref_book
-            .map(|val| temp_input.find(val).unwrap_or(temp_input.len()));
+        let index = ref_book.map(|val| temp_input.rfind(val).unwrap_or(temp_input.len()));
         // left and right are the input divided left and right at the indexes
         let (left, right) = temp_input.split_at(index.unwrap());
 
@@ -224,7 +230,8 @@ fn iterative_parse(input: Vec<String>) -> Vec<String> {
 }
 
 //  Takes any book, chapter, verses reference and returns the id_code. E.g., it converts "GEN1" into 1001001-1001999,
-//  or "GE1:2" into 1001002, or "GEN1:2-3" into 1001002-1001003, or "GEN1:2-3:40" into 1001002-1003040
+//  or "GEN1:2" into 1001002, or "GEN1:2-3" into 1001002-1001003, or "GEN1:2-3:40" into 1001002-1003040,
+//  or "GEN" into 1001001-1999999
 fn bcv_ref_to_id_code(bcv_ref: &str) -> Result<String, &'static str> {
     // capture the book context (now always the first three characters)
     let (book, remainder) = bcv_ref.split_at(3);
@@ -237,65 +244,117 @@ fn bcv_ref_to_id_code(bcv_ref: &str) -> Result<String, &'static str> {
     if chapter_verse.len() == 1 {
         // single chapter or span of chapters
         let s_chapter = chapter_verse[0];
-        if s_chapter.contains('-') {
-            let split: Vec<&str> = s_chapter.split('-').collect();
-            let chap1 = split[0];
-            let chap2 = split[1];
 
-            Ok(format!("{}{:03}001-{}{:03}999",
-                       book_id,
-                       chap1.parse::<u32>().unwrap_or(0),
-                       book_id,
-                       chap2.parse::<u32>().unwrap_or(0)
+        // book without chapter or verses
+        if s_chapter.is_empty() {
+            Ok(format!("{}001001-{}999999",
+                        book_id,
+                        book_id
             ))
+        // book and multiple chapters
+        } else if s_chapter.contains('-') {
+            let split: Vec<&str> = s_chapter.split('-').collect();
+            let chapter1 = split[0].parse::<u32>().unwrap();
+            let chapter2 = split[1].parse::<u32>().unwrap();
+
+            if chapter1 > 999 || chapter2 > 999 {
+                Err("Chapter value too high")
+            } else {
+                Ok(format!("{}{:03}001-{}{:03}999",
+                            book_id,
+                            chapter1,
+                            book_id,
+                            chapter2
+                ))
+            }
+        // book and a single chapter
         } else {
-            Ok(format!("{}{:03}001-{}{:03}999",
-                       book_id,
-                       s_chapter.parse::<u32>().unwrap_or(0),
-                       book_id,
-                       s_chapter.parse::<u32>().unwrap_or(0)
-            ))
+            let mut schapter:u32 = 0;
+            match s_chapter.parse::<u32>() {
+                Ok(_) => {
+                    schapter = s_chapter.parse::<u32>().unwrap();
+                }
+                Err(_) => {
+                    println!("The chapter number is not numeric.");
+                }
+            }
+
+            if schapter > 999 {
+                Err("Chapter value too high")
+            } else {
+                Ok(format!("{}{:03}001-{}{:03}999",
+                            book_id,
+                            schapter,
+                            book_id,
+                            schapter
+                ))
+            }
         }
     } else if chapter_verse.len() == 2 {
-        let chapter = chapter_verse[0];
+        let chapter = chapter_verse[0].parse::<u32>().unwrap();
         let verses = chapter_verse[1];
         if !verses.contains('-') {
             // single chapter and verse; e.g., "GEN1:2"
-            Ok(format!("{}{:03}{:03}",
-                       book_id,
-                       chapter.parse::<u32>().unwrap_or(0),
-                       verses.parse::<u32>().unwrap_or(0)
-            ))
+            let sverses = verses.parse::<u32>().unwrap();
+
+            if chapter > 999 {
+                Err("Chapter value too high")
+            } else if sverses > 999 {
+                Err("Verse value too high")
+            } else {
+                Ok(format!("{}{:03}{:03}",
+                            book_id,
+                            chapter,
+                            sverses
+                ))
+            }
         } else {
             // single chapter with multiple verses; e.g. "GEN1:2-3"
             let parts: Vec<&str> = verses.split('-').collect();
-            let first_verse = parts[0];
-            let second_verse = parts[1];
-            Ok(format!("{}{:03}{:03}-{}{:03}{:03}",
-                       book_id,
-                       chapter.parse::<u32>().unwrap_or(0),
-                       first_verse.parse::<u32>().unwrap_or(0),
-                       book_id, chapter.parse::<u32>().unwrap_or(0),
-                       second_verse.parse::<u32>().unwrap_or(0)
-            ))
+            let first_verse = parts[0].parse::<u32>().unwrap();
+            let second_verse = parts[1].parse::<u32>().unwrap();
+
+            if chapter > 999 {
+                Err("Chapter value too high")
+            } else if first_verse > 999 || second_verse > 999 {
+                Err("Verse value too high")
+            } else {
+                Ok(format!("{}{:03}{:03}-{}{:03}{:03}",
+                            book_id,
+                            chapter,
+                            first_verse,
+                            book_id,
+                            chapter,
+                            second_verse
+                ))
+            }
         }
     } else if chapter_verse.len() == 3 {
         // multiple chapter and verse; e.g. "GEN1:2-3:40"
         let parts: Vec<&str> = remainder.split('-').collect();
-        let first_chapter_verse = parts[0];
+        let first_chapter = parts[0].split(':').collect::<Vec<&str>>()[0].parse::<u32>().unwrap();
+        let first_verse = parts[0].split(':').collect::<Vec<&str>>()[1].parse::<u32>().unwrap();
         let second_chapter_verse = match parts.get(1) {
             Some(verse) => verse,
             None => return Err("Invalid reference")
         };
+        let second_chapter = second_chapter_verse.split(':').collect::<Vec<&str>>()[0].parse::<u32>().unwrap();
+        let second_verse = second_chapter_verse.split(':').collect::<Vec<&str>>()[1].parse::<u32>().unwrap();
 
-        Ok(format!("{}{:03}{:03}-{}{:03}{:03}",
-                   book_id,
-                   first_chapter_verse.split(':').collect::<Vec<&str>>()[0].parse::<u32>().unwrap_or(0),
-                   first_chapter_verse.split(':').collect::<Vec<&str>>()[1].parse::<u32>().unwrap_or(0),
-                   book_id,
-                   second_chapter_verse.split(':').collect::<Vec<&str>>()[0].parse::<u32>().unwrap_or(0),
-                   second_chapter_verse.split(':').collect::<Vec<&str>>()[1].parse::<u32>().unwrap_or(0)
-        ))
+        if first_chapter > 999 || second_chapter > 999 {
+            Err("Chapter value too high")
+        } else if first_verse > 999 || second_verse > 999 {
+            Err("Verse value too high")
+        } else {
+            Ok(format!("{}{:03}{:03}-{}{:03}{:03}",
+                        book_id,
+                        first_chapter,
+                        first_verse,
+                        book_id,
+                        second_chapter,
+                        second_verse
+            ))
+        }
     } else {
         // Default case, return an error
         Err("Invalid input format")
@@ -399,17 +458,47 @@ fn span_ref_to_id_code(span_ref: &str, titles: &Vec<String>, my_map: &HashMap<&s
             if sr.contains(title) {
                 let abbr_title = my_map.get(title.as_str()).unwrap();
                 let ref_minus_title: String = sr.trim_start_matches(title).to_string();
-                let chapter_verse: Vec<&str> = ref_minus_title.split(':').collect();
-                let chapter = chapter_verse[0];
+
+                if ref_minus_title.chars().any(char::is_alphabetic) {
+                    // the title contained but never equals a recognized title, so return blank
+                    eprintln!("Book not found");
+                    return String::new();
+                }
+
+                let chapter_verse: Vec<&str> = ref_minus_title.split(|c| c == ':' || c == '.').collect();
+                let chapter = chapter_verse[0].parse::<u32>().unwrap_or(0);
                 let verses = chapter_verse.get(1).unwrap_or(&"");
                 let book_id = BibleMap::get_book_id_by_name(abbr_title);
+
+                if chapter > 999 {
+                    eprintln!("Chapter value too high");
+                    return String::new();
+                }
 
                 match book_id {
                     Some(id) => {
                         let id_code = if verses.is_empty() {
-                            format!("{}{:03}{}", id, chapter.parse::<u32>().unwrap_or(0), if idx == 0 { "001" } else { "999" })
+                            if chapter == 0 {
+                                format!("{}{:03}{}",
+                                         id,
+                                         if idx == 0 { "001" } else { "999" },
+                                         if idx == 0 { "001" } else { "999" })
+                            } else {
+                                format!("{}{:03}{}",
+                                         id,
+                                         chapter,
+                                         if idx == 0 { "001" } else { "999" })
+                            }
                         } else {
-                            format!("{}{:03}{:03}", id, chapter.parse::<u32>().unwrap_or(0), verses.parse::<u32>().unwrap_or(0))
+                            let sverses = verses.parse::<u32>().unwrap();
+                            if sverses > 999 {
+                                eprintln!("Verse value too high");
+                                return String::new();
+                            }
+                            format!("{}{:03}{:03}",
+                                     id,
+                                     chapter,
+                                     sverses)
                         };
                         if idx == 0 {
                             id_code0 = id_code;
